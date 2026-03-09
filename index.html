@@ -3,38 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>US 30-Year Treasury Yield</title>
+    <title>US Treasury Yield Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
             background: white;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             padding: 30px;
+            margin-bottom: 20px;
         }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
+        
+        /* Tab 样式 */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        .tab:hover {
+            color: #667eea;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* 统计卡片 */
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 30px;
         }
         .stat-card {
@@ -45,70 +83,152 @@
             text-align: center;
         }
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.9;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .stat-value {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: bold;
             margin-top: 8px;
         }
+        
+        /* 图表 */
         #chart {
             width: 100%;
-            height: 500px;
+            height: 450px;
         }
+        
+        /* 底部信息 */
         .footer {
-            text-align: center;
-            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
             font-size: 12px;
         }
+        .auto-update {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 隐藏内容 */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
         @media (max-width: 768px) {
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .tab { font-size: 14px; padding: 10px 16px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🇺🇸 30年期美国国债收益率</h1>
-        <p class="subtitle">过去60天走势 | 数据来源: AkShare</p>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-label">当前</div>
-                <div class="stat-value">4.77%</div>
+        <div class="card">
+            <h1>🇺🇸 美国国债收益率仪表盘</h1>
+            <p class="subtitle">实时追踪美债收益率走势 | 自动更新数据</p>
+            
+            <!-- Tab 切换 -->
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('10y')">📊 10年期</button>
+                <button class="tab" onclick="switchTab('30y')">📈 30年期</button>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">60天最高</div>
-                <div class="stat-value">4.91%</div>
+            
+            <!-- 10年期内容 -->
+            <div id="content-10y" class="tab-content active">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">当前收益率</div>
+                        <div class="stat-value" id="stat-10y-current">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">60天最高</div>
+                        <div class="stat-value" id="stat-10y-high">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">60天最低</div>
+                        <div class="stat-value" id="stat-10y-low">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">平均值</div>
+                        <div class="stat-value" id="stat-10y-avg">--</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">60天最低</div>
-                <div class="stat-value">4.64%</div>
+            
+            <!-- 30年期内容 -->
+            <div id="content-30y" class="tab-content">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">当前收益率</div>
+                        <div class="stat-value" id="stat-30y-current">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">60天最高</div>
+                        <div class="stat-value" id="stat-30y-high">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">60天最低</div>
+                        <div class="stat-value" id="stat-30y-low">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">平均值</div>
+                        <div class="stat-value" id="stat-30y-avg">--</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label">平均值</div>
-                <div class="stat-value">4.79%</div>
+            
+            <!-- 图表 -->
+            <div id="chart"></div>
+            
+            <!-- 底部 -->
+            <div class="footer">
+                <div>数据范围: <span id="date-range">--</span></div>
+                <div class="auto-update">
+                    <span class="status-dot"></span>
+                    <span>自动更新开启 (每小时)</span>
+                </div>
             </div>
-        </div>
-        
-        <div id="chart"></div>
-        
-        <div class="footer">
-            更新时间: 2026-03-09 | 数据范围: 2025-12-26 ~ 2026-03-06
         </div>
     </div>
 
     <script>
-        // 数据
-        const dates = ['2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30','2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27','2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06'];
+        // 数据源配置 - 这里会从 data.json 加载，也可以配置为从 API 获取
+        let chartData = {};
+        let currentTab = '10y';
         
-        const yields = [4.81,4.8,4.81,4.84,4.86,4.85,4.86,4.82,4.85,4.82,4.83,4.83,4.79,4.79,4.83,4.91,4.87,4.84,4.82,4.8,4.83,4.85,4.85,4.87,4.9,4.9,4.91,4.85,4.85,4.85,4.78,4.82,4.72,4.69,4.68,4.71,4.7,4.72,4.7,4.7,4.7,4.67,4.64,4.7,4.7,4.72,4.74,4.77];
-
+        // 初始化数据（内置数据作为 fallback）
+        const fallbackData = {
+            '10y': {
+                dates: ['2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30','2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27','2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06'],
+                yields: [4.59,4.58,4.56,4.57,4.62,4.68,4.69,4.67,4.71,4.77,4.81,4.83,4.78,4.80,4.82,4.86,4.83,4.80,4.78,4.75,4.77,4.79,4.79,4.80,4.81,4.81,4.80,4.73,4.73,4.74,4.66,4.68,4.56,4.53,4.50,4.54,4.53,4.55,4.52,4.52,4.53,4.50,4.47,4.53,4.54,4.57,4.60,4.62]
+            },
+            '30y': {
+                dates: ['2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30','2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27','2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06'],
+                yields: [4.81,4.80,4.81,4.84,4.86,4.85,4.86,4.82,4.85,4.82,4.83,4.83,4.79,4.79,4.83,4.91,4.87,4.84,4.82,4.80,4.83,4.85,4.85,4.87,4.90,4.90,4.91,4.85,4.85,4.85,4.78,4.82,4.72,4.69,4.68,4.71,4.70,4.72,4.70,4.70,4.70,4.67,4.64,4.70,4.70,4.72,4.74,4.77]
+            }
+        };
+        
         // 计算均线
         function calculateMA(data, period) {
             const ma = [];
@@ -125,85 +245,165 @@
             }
             return ma;
         }
-
-        const ma5 = calculateMA(yields, 5);
-        const ma20 = calculateMA(yields, 20);
-
+        
+        // 计算统计数据
+        function updateStats(data, prefix) {
+            const yields = data.yields;
+            const current = yields[yields.length - 1];
+            const max = Math.max(...yields);
+            const min = Math.min(...yields);
+            const avg = yields.reduce((a, b) => a + b, 0) / yields.length;
+            
+            document.getElementById(`stat-${prefix}-current`).textContent = current.toFixed(2) + '%';
+            document.getElementById(`stat-${prefix}-high`).textContent = max.toFixed(2) + '%';
+            document.getElementById(`stat-${prefix}-low`).textContent = min.toFixed(2) + '%';
+            document.getElementById(`stat-${prefix}-avg`).textContent = avg.toFixed(2) + '%';
+        }
+        
         // 绘制图表
-        const trace1 = {
-            x: dates,
-            y: yields,
-            mode: 'lines',
-            name: '30Y Treasury Yield',
-            line: { color: '#1f77b4', width: 3 },
-            hovertemplate: '日期: %{x}<br>收益率: %{y:.2f}%<extra></extra>'
-        };
-
-        const trace2 = {
-            x: dates,
-            y: ma5,
-            mode: 'lines',
-            name: 'MA5',
-            line: { color: '#ff7f0e', width: 2, dash: 'dash' },
-            hovertemplate: 'MA5: %{y:.2f}%<extra></extra>'
-        };
-
-        const trace3 = {
-            x: dates,
-            y: ma20,
-            mode: 'lines',
-            name: 'MA20',
-            line: { color: '#d62728', width: 2, dash: 'dash' },
-            hovertemplate: 'MA20: %{y:.2f}%<extra></extra>'
-        };
-
-        // 最新值标注
-        const latest = {
-            x: [dates[dates.length - 1]],
-            y: [yields[yields.length - 1]],
-            mode: 'markers+text',
-            name: '当前值',
-            text: ['4.77%'],
-            textposition: 'top right',
-            marker: { size: 12, color: 'yellow', line: { color: 'red', width: 2 } },
-            textfont: { size: 14, color: 'red', weight: 'bold' },
-            showlegend: false
-        };
-
-        const data = [trace1, trace2, trace3, latest];
-
-        const layout = {
-            title: {
-                text: '',
-            },
-            xaxis: {
-                title: '日期',
-                tickangle: -45,
-                tickmode: 'array',
-                tickvals: dates.filter((_, i) => i % 5 === 0),
-                ticktext: dates.filter((_, i) => i % 5 === 0).map(d => d.slice(5))
-            },
-            yaxis: {
-                title: '收益率 (%)',
-                tickformat: '.2f'
-            },
-            hovermode: 'x unified',
-            legend: {
-                orientation: 'h',
-                y: 1.1
-            },
-            margin: { t: 50, b: 80 },
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)'
-        };
-
-        const config = {
-            responsive: true,
-            displayModeBar: true,
-            displaylogo: false
-        };
-
-        Plotly.newPlot('chart', data, layout, config);
+        function drawChart() {
+            const data = chartData[currentTab];
+            const yields = data.yields;
+            const dates = data.dates;
+            const title = currentTab === '10y' ? '10年期美债收益率' : '30年期美债收益率';
+            
+            const ma5 = calculateMA(yields, 5);
+            const ma20 = calculateMA(yields, 20);
+            
+            const trace1 = {
+                x: dates,
+                y: yields,
+                mode: 'lines',
+                name: title,
+                line: { color: '#1f77b4', width: 3 },
+                hovertemplate: '日期: %{x}<br>收益率: %{y:.2f}%<extra></extra>'
+            };
+            
+            const trace2 = {
+                x: dates,
+                y: ma5,
+                mode: 'lines',
+                name: 'MA5',
+                line: { color: '#ff7f0e', width: 2, dash: 'dash' },
+                hovertemplate: 'MA5: %{y:.2f}%<extra></extra>'
+            };
+            
+            const trace3 = {
+                x: dates,
+                y: ma20,
+                mode: 'lines',
+                name: 'MA20',
+                line: { color: '#d62728', width: 2, dash: 'dash' },
+                hovertemplate: 'MA20: %{y:.2f}%<extra></extra>'
+            };
+            
+            // 最新值标注
+            const latest = {
+                x: [dates[dates.length - 1]],
+                y: [yields[yields.length - 1]],
+                mode: 'markers+text',
+                name: '当前值',
+                text: [yields[yields.length - 1].toFixed(2) + '%'],
+                textposition: 'top right',
+                marker: { size: 12, color: 'yellow', line: { color: 'red', width: 2 } },
+                textfont: { size: 14, color: 'red', weight: 'bold' },
+                showlegend: false
+            };
+            
+            const plotData = [trace1, trace2, trace3, latest];
+            
+            const layout = {
+                xaxis: {
+                    title: '',
+                    tickangle: -45,
+                    tickmode: 'array',
+                    tickvals: dates.filter((_, i) => i % 5 === 0),
+                    ticktext: dates.filter((_, i) => i % 5 === 0).map(d => d.slice(5))
+                },
+                yaxis: {
+                    title: '收益率 (%)',
+                    tickformat: '.2f'
+                },
+                hovermode: 'x unified',
+                legend: {
+                    orientation: 'h',
+                    y: 1.1
+                },
+                margin: { t: 50, b: 80 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false
+            };
+            
+            Plotly.newPlot('chart', plotData, layout, config);
+            
+            // 更新日期范围
+            document.getElementById('date-range').textContent = 
+                `${dates[0]} ~ ${dates[dates.length - 1]}`;
+        }
+        
+        // Tab 切换
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // 更新 Tab 样式
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`content-${tab}`).classList.add('active');
+            
+            // 重新绘制图表
+            drawChart();
+        }
+        
+        // 加载数据（尝试从 data.json 加载，失败则用内置数据）
+        async function loadData() {
+            try {
+                const response = await fetch('data.json?t=' + Date.now());
+                if (response.ok) {
+                    chartData = await response.json();
+                    console.log('从 data.json 加载数据成功');
+                } else {
+                    throw new Error('无法加载 data.json');
+                }
+            } catch (e) {
+                console.log('使用内置数据');
+                chartData = fallbackData;
+            }
+            
+            // 更新统计数据
+            updateStats(chartData['10y'], '10y');
+            updateStats(chartData['30y'], '30y');
+            
+            // 绘制图表
+            drawChart();
+        }
+        
+        // 自动更新（每小时检查一次）
+        function autoUpdate() {
+            console.log('检查数据更新...');
+            loadData();
+        }
+        
+        // 初始化
+        window.addEventListener('load', () => {
+            loadData();
+            // 每小时自动更新
+            setInterval(autoUpdate, 60 * 60 * 1000);
+        });
+        
+        // 窗口大小改变时重新绘制
+        window.addEventListener('resize', () => {
+            if (document.getElementById('chart').data) {
+                Plotly.Plots.resize(document.getElementById('chart'));
+            }
+        });
     </script>
 </body>
 </html>
