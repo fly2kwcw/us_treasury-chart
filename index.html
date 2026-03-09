@@ -38,66 +38,78 @@
             font-size: 14px;
         }
         
-        /* Tab 样式 */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            background: #f5f5f5;
-            border-radius: 12px;
-            padding: 5px;
-        }
-        .tab {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s ease;
-        }
-        .tab:hover {
-            color: #667eea;
-        }
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
         /* 统计卡片 */
-        .stats {
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
             margin-bottom: 30px;
         }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .stat-section {
+            background: #f8f9fa;
             border-radius: 12px;
-            text-align: center;
+            padding: 20px;
+            border-left: 4px solid;
+        }
+        .stat-section.y10 {
+            border-left-color: #1f77b4;
+        }
+        .stat-section.y30 {
+            border-left-color: #ff7f0e;
+        }
+        .stat-section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
         .stat-label {
-            font-size: 11px;
-            opacity: 0.9;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #666;
         }
         .stat-value {
-            font-size: 26px;
+            font-weight: 600;
+            color: #333;
+        }
+        .current-highlight {
+            font-size: 24px;
             font-weight: bold;
-            margin-top: 8px;
+            color: #333;
+        }
+        
+        /* 利差显示 */
+        .spread-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .spread-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        .spread-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .spread-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
         }
         
         /* 图表 */
         #chart {
             width: 100%;
-            height: 450px;
+            height: 500px;
         }
         
         /* 底部信息 */
@@ -128,72 +140,65 @@
             50% { opacity: 0.5; }
         }
         
-        /* 隐藏内容 */
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        
         @media (max-width: 768px) {
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .tab { font-size: 14px; padding: 10px 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h1>🇺🇸 美国国债收益率仪表盘</h1>
-            <p class="subtitle">实时追踪美债收益率走势 | 自动更新数据</p>
+            <h1>🇺🇸 美国国债收益率对比</h1>
+            <p class="subtitle">10年期 vs 30年期 | 过去60天走势对比</p>
             
-            <!-- Tab 切换 -->
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('10y')">📊 10年期</button>
-                <button class="tab" onclick="switchTab('30y')">📈 30年期</button>
+            <!-- 利差卡片 -->
+            <div class="spread-card">
+                <div class="spread-title">期限利差 (30Y - 10Y)</div>
+                <div class="spread-value" id="spread-value">--</div>
+                <div class="spread-label">收益率曲线陡峭程度</div>
             </div>
             
-            <!-- 10年期内容 -->
-            <div id="content-10y" class="tab-content active">
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-label">当前收益率</div>
-                        <div class="stat-value" id="stat-10y-current">--</div>
+            <!-- 统计数据 -->
+            <div class="stats-grid">
+                <!-- 10年期 -->
+                <div class="stat-section y10">
+                    <div class="stat-section-title">📊 10年期美债</div>
+                    <div class="stat-row">
+                        <span class="stat-label">当前</span>
+                        <span class="stat-value current-highlight" id="y10-current">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">60天最高</div>
-                        <div class="stat-value" id="stat-10y-high">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">60天最高</span>
+                        <span class="stat-value" id="y10-high">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">60天最低</div>
-                        <div class="stat-value" id="stat-10y-low">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">60天最低</span>
+                        <span class="stat-value" id="y10-low">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">平均值</div>
-                        <div class="stat-value" id="stat-10y-avg">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">平均值</span>
+                        <span class="stat-value" id="y10-avg">--</span>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 30年期内容 -->
-            <div id="content-30y" class="tab-content">
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-label">当前收益率</div>
-                        <div class="stat-value" id="stat-30y-current">--</div>
+                
+                <!-- 30年期 -->
+                <div class="stat-section y30">
+                    <div class="stat-section-title">📈 30年期美债</div>
+                    <div class="stat-row">
+                        <span class="stat-label">当前</span>
+                        <span class="stat-value current-highlight" id="y30-current">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">60天最高</div>
-                        <div class="stat-value" id="stat-30y-high">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">60天最高</span>
+                        <span class="stat-value" id="y30-high">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">60天最低</div>
-                        <div class="stat-value" id="stat-30y-low">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">60天最低</span>
+                        <span class="stat-value" id="y30-low">--</span>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-label">平均值</div>
-                        <div class="stat-value" id="stat-30y-avg">--</div>
+                    <div class="stat-row">
+                        <span class="stat-label">平均值</span>
+                        <span class="stat-value" id="y30-avg">--</span>
                     </div>
                 </div>
             </div>
@@ -213,11 +218,9 @@
     </div>
 
     <script>
-        // 数据源配置 - 这里会从 data.json 加载，也可以配置为从 API 获取
         let chartData = {};
-        let currentTab = '10y';
         
-        // 初始化数据（内置数据作为 fallback）
+        // 内置数据
         const fallbackData = {
             '10y': {
                 dates: ['2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30','2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27','2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06'],
@@ -246,73 +249,114 @@
             return ma;
         }
         
-        // 计算统计数据
-        function updateStats(data, prefix) {
-            const yields = data.yields;
-            const current = yields[yields.length - 1];
-            const max = Math.max(...yields);
-            const min = Math.min(...yields);
-            const avg = yields.reduce((a, b) => a + b, 0) / yields.length;
+        // 更新统计数据
+        function updateStats() {
+            const y10 = chartData['10y'].yields;
+            const y30 = chartData['30y'].yields;
             
-            document.getElementById(`stat-${prefix}-current`).textContent = current.toFixed(2) + '%';
-            document.getElementById(`stat-${prefix}-high`).textContent = max.toFixed(2) + '%';
-            document.getElementById(`stat-${prefix}-low`).textContent = min.toFixed(2) + '%';
-            document.getElementById(`stat-${prefix}-avg`).textContent = avg.toFixed(2) + '%';
+            // 10年期统计
+            document.getElementById('y10-current').textContent = y10[y10.length - 1].toFixed(2) + '%';
+            document.getElementById('y10-high').textContent = Math.max(...y10).toFixed(2) + '%';
+            document.getElementById('y10-low').textContent = Math.min(...y10).toFixed(2) + '%';
+            document.getElementById('y10-avg').textContent = (y10.reduce((a, b) => a + b, 0) / y10.length).toFixed(2) + '%';
+            
+            // 30年期统计
+            document.getElementById('y30-current').textContent = y30[y30.length - 1].toFixed(2) + '%';
+            document.getElementById('y30-high').textContent = Math.max(...y30).toFixed(2) + '%';
+            document.getElementById('y30-low').textContent = Math.min(...y30).toFixed(2) + '%';
+            document.getElementById('y30-avg').textContent = (y30.reduce((a, b) => a + b, 0) / y30.length).toFixed(2) + '%';
+            
+            // 利差
+            const spread = y30[y30.length - 1] - y10[y10.length - 1];
+            document.getElementById('spread-value').textContent = spread.toFixed(2) + '%';
         }
         
-        // 绘制图表
+        // 绘制图表（双线图对比）
         function drawChart() {
-            const data = chartData[currentTab];
-            const yields = data.yields;
-            const dates = data.dates;
-            const title = currentTab === '10y' ? '10年期美债收益率' : '30年期美债收益率';
+            const dates = chartData['10y'].dates;
+            const y10 = chartData['10y'].yields;
+            const y30 = chartData['30y'].yields;
             
-            const ma5 = calculateMA(yields, 5);
-            const ma20 = calculateMA(yields, 20);
+            const ma10_5 = calculateMA(y10, 5);
+            const ma30_5 = calculateMA(y30, 5);
             
-            const trace1 = {
+            // 10年期主线
+            const trace10 = {
                 x: dates,
-                y: yields,
+                y: y10,
                 mode: 'lines',
-                name: title,
+                name: '10年期美债',
                 line: { color: '#1f77b4', width: 3 },
-                hovertemplate: '日期: %{x}<br>收益率: %{y:.2f}%<extra></extra>'
+                hovertemplate: '10年期: %{y:.2f}%<extra></extra>'
             };
             
-            const trace2 = {
+            // 10年期均线
+            const trace10_ma = {
                 x: dates,
-                y: ma5,
+                y: ma10_5,
                 mode: 'lines',
-                name: 'MA5',
-                line: { color: '#ff7f0e', width: 2, dash: 'dash' },
-                hovertemplate: 'MA5: %{y:.2f}%<extra></extra>'
+                name: '10Y MA5',
+                line: { color: '#1f77b4', width: 1, dash: 'dot' },
+                opacity: 0.6,
+                hovertemplate: '10Y MA5: %{y:.2f}%<extra></extra>'
             };
             
-            const trace3 = {
+            // 30年期主线
+            const trace30 = {
                 x: dates,
-                y: ma20,
+                y: y30,
                 mode: 'lines',
-                name: 'MA20',
-                line: { color: '#d62728', width: 2, dash: 'dash' },
-                hovertemplate: 'MA20: %{y:.2f}%<extra></extra>'
+                name: '30年期美债',
+                line: { color: '#ff7f0e', width: 3 },
+                hovertemplate: '30年期: %{y:.2f}%<extra></extra>'
             };
             
-            // 最新值标注
-            const latest = {
+            // 30年期均线
+            const trace30_ma = {
+                x: dates,
+                y: ma30_5,
+                mode: 'lines',
+                name: '30Y MA5',
+                line: { color: '#ff7f0e', width: 1, dash: 'dot' },
+                opacity: 0.6,
+                hovertemplate: '30Y MA5: %{y:.2f}%<extra></extra>'
+            };
+            
+            // 最新值标注 - 10年
+            const latest10 = {
                 x: [dates[dates.length - 1]],
-                y: [yields[yields.length - 1]],
+                y: [y10[y10.length - 1]],
                 mode: 'markers+text',
-                name: '当前值',
-                text: [yields[yields.length - 1].toFixed(2) + '%'],
-                textposition: 'top right',
-                marker: { size: 12, color: 'yellow', line: { color: 'red', width: 2 } },
-                textfont: { size: 14, color: 'red', weight: 'bold' },
-                showlegend: false
+                name: '10Y当前',
+                text: [y10[y10.length - 1].toFixed(2) + '%'],
+                textposition: 'top left',
+                marker: { size: 10, color: '#1f77b4' },
+                textfont: { size: 12, color: '#1f77b4', weight: 'bold' },
+                showlegend: false,
+                hoverinfo: 'skip'
             };
             
-            const plotData = [trace1, trace2, trace3, latest];
+            // 最新值标注 - 30年
+            const latest30 = {
+                x: [dates[dates.length - 1]],
+                y: [y30[y30.length - 1]],
+                mode: 'markers+text',
+                name: '30Y当前',
+                text: [y30[y30.length - 1].toFixed(2) + '%'],
+                textposition: 'top right',
+                marker: { size: 10, color: '#ff7f0e' },
+                textfont: { size: 12, color: '#ff7f0e', weight: 'bold' },
+                showlegend: false,
+                hoverinfo: 'skip'
+            };
+            
+            const plotData = [trace10, trace10_ma, trace30, trace30_ma, latest10, latest30];
             
             const layout = {
+                title: {
+                    text: '10年期 vs 30年期美债收益率对比',
+                    font: { size: 18 }
+                },
                 xaxis: {
                     title: '',
                     tickangle: -45,
@@ -327,9 +371,11 @@
                 hovermode: 'x unified',
                 legend: {
                     orientation: 'h',
-                    y: 1.1
+                    y: 1.15,
+                    x: 0.5,
+                    xanchor: 'center'
                 },
-                margin: { t: 50, b: 80 },
+                margin: { t: 80, b: 80 },
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)'
             };
@@ -347,22 +393,7 @@
                 `${dates[0]} ~ ${dates[dates.length - 1]}`;
         }
         
-        // Tab 切换
-        function switchTab(tab) {
-            currentTab = tab;
-            
-            // 更新 Tab 样式
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(`content-${tab}`).classList.add('active');
-            
-            // 重新绘制图表
-            drawChart();
-        }
-        
-        // 加载数据（尝试从 data.json 加载，失败则用内置数据）
+        // 加载数据
         async function loadData() {
             try {
                 const response = await fetch('data.json?t=' + Date.now());
@@ -377,15 +408,11 @@
                 chartData = fallbackData;
             }
             
-            // 更新统计数据
-            updateStats(chartData['10y'], '10y');
-            updateStats(chartData['30y'], '30y');
-            
-            // 绘制图表
+            updateStats();
             drawChart();
         }
         
-        // 自动更新（每小时检查一次）
+        // 自动更新
         function autoUpdate() {
             console.log('检查数据更新...');
             loadData();
@@ -394,11 +421,9 @@
         // 初始化
         window.addEventListener('load', () => {
             loadData();
-            // 每小时自动更新
             setInterval(autoUpdate, 60 * 60 * 1000);
         });
         
-        // 窗口大小改变时重新绘制
         window.addEventListener('resize', () => {
             if (document.getElementById('chart').data) {
                 Plotly.Plots.resize(document.getElementById('chart'));
