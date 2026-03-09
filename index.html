@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US 30-Year Treasury Yield</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        #chart {
+            width: 100%;
+            height: 500px;
+        }
+        .footer {
+            text-align: center;
+            color: #999;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇺🇸 30年期美国国债收益率</h1>
+        <p class="subtitle">过去60天走势 | 数据来源: AkShare</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">当前</div>
+                <div class="stat-value">4.77%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">60天最高</div>
+                <div class="stat-value">4.91%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">60天最低</div>
+                <div class="stat-value">4.64%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">平均值</div>
+                <div class="stat-value">4.79%</div>
+            </div>
+        </div>
+        
+        <div id="chart"></div>
+        
+        <div class="footer">
+            更新时间: 2026-03-09 | 数据范围: 2025-12-26 ~ 2026-03-06
+        </div>
+    </div>
+
+    <script>
+        // 数据
+        const dates = ['2025-12-26','2025-12-29','2025-12-30','2025-12-31','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-12','2026-01-13','2026-01-14','2026-01-15','2026-01-16','2026-01-20','2026-01-21','2026-01-22','2026-01-23','2026-01-26','2026-01-27','2026-01-28','2026-01-29','2026-01-30','2026-02-02','2026-02-03','2026-02-04','2026-02-05','2026-02-06','2026-02-09','2026-02-10','2026-02-11','2026-02-12','2026-02-13','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-23','2026-02-24','2026-02-25','2026-02-26','2026-02-27','2026-03-02','2026-03-03','2026-03-04','2026-03-05','2026-03-06'];
+        
+        const yields = [4.81,4.8,4.81,4.84,4.86,4.85,4.86,4.82,4.85,4.82,4.83,4.83,4.79,4.79,4.83,4.91,4.87,4.84,4.82,4.8,4.83,4.85,4.85,4.87,4.9,4.9,4.91,4.85,4.85,4.85,4.78,4.82,4.72,4.69,4.68,4.71,4.7,4.72,4.7,4.7,4.7,4.67,4.64,4.7,4.7,4.72,4.74,4.77];
+
+        // 计算均线
+        function calculateMA(data, period) {
+            const ma = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    ma.push(null);
+                } else {
+                    let sum = 0;
+                    for (let j = 0; j < period; j++) {
+                        sum += data[i - j];
+                    }
+                    ma.push(parseFloat((sum / period).toFixed(2)));
+                }
+            }
+            return ma;
+        }
+
+        const ma5 = calculateMA(yields, 5);
+        const ma20 = calculateMA(yields, 20);
+
+        // 绘制图表
+        const trace1 = {
+            x: dates,
+            y: yields,
+            mode: 'lines',
+            name: '30Y Treasury Yield',
+            line: { color: '#1f77b4', width: 3 },
+            hovertemplate: '日期: %{x}<br>收益率: %{y:.2f}%<extra></extra>'
+        };
+
+        const trace2 = {
+            x: dates,
+            y: ma5,
+            mode: 'lines',
+            name: 'MA5',
+            line: { color: '#ff7f0e', width: 2, dash: 'dash' },
+            hovertemplate: 'MA5: %{y:.2f}%<extra></extra>'
+        };
+
+        const trace3 = {
+            x: dates,
+            y: ma20,
+            mode: 'lines',
+            name: 'MA20',
+            line: { color: '#d62728', width: 2, dash: 'dash' },
+            hovertemplate: 'MA20: %{y:.2f}%<extra></extra>'
+        };
+
+        // 最新值标注
+        const latest = {
+            x: [dates[dates.length - 1]],
+            y: [yields[yields.length - 1]],
+            mode: 'markers+text',
+            name: '当前值',
+            text: ['4.77%'],
+            textposition: 'top right',
+            marker: { size: 12, color: 'yellow', line: { color: 'red', width: 2 } },
+            textfont: { size: 14, color: 'red', weight: 'bold' },
+            showlegend: false
+        };
+
+        const data = [trace1, trace2, trace3, latest];
+
+        const layout = {
+            title: {
+                text: '',
+            },
+            xaxis: {
+                title: '日期',
+                tickangle: -45,
+                tickmode: 'array',
+                tickvals: dates.filter((_, i) => i % 5 === 0),
+                ticktext: dates.filter((_, i) => i % 5 === 0).map(d => d.slice(5))
+            },
+            yaxis: {
+                title: '收益率 (%)',
+                tickformat: '.2f'
+            },
+            hovermode: 'x unified',
+            legend: {
+                orientation: 'h',
+                y: 1.1
+            },
+            margin: { t: 50, b: 80 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)'
+        };
+
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false
+        };
+
+        Plotly.newPlot('chart', data, layout, config);
+    </script>
+</body>
+</html>
