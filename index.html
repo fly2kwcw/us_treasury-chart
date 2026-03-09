@@ -254,20 +254,28 @@
             const y10 = chartData['10y'].yields;
             const y30 = chartData['30y'].yields;
             
+            // 过滤掉 null 值
+            const y10_valid = y10.filter(v => v !== null);
+            const y30_valid = y30.filter(v => v !== null);
+            
+            // 获取最后一个有效值
+            const y10_current = y10_valid[y10_valid.length - 1];
+            const y30_current = y30_valid[y30_valid.length - 1];
+            
             // 10年期统计
-            document.getElementById('y10-current').textContent = y10[y10.length - 1].toFixed(2) + '%';
-            document.getElementById('y10-high').textContent = Math.max(...y10).toFixed(2) + '%';
-            document.getElementById('y10-low').textContent = Math.min(...y10).toFixed(2) + '%';
-            document.getElementById('y10-avg').textContent = (y10.reduce((a, b) => a + b, 0) / y10.length).toFixed(2) + '%';
+            document.getElementById('y10-current').textContent = y10_current.toFixed(2) + '%';
+            document.getElementById('y10-high').textContent = Math.max(...y10_valid).toFixed(2) + '%';
+            document.getElementById('y10-low').textContent = Math.min(...y10_valid).toFixed(2) + '%';
+            document.getElementById('y10-avg').textContent = (y10_valid.reduce((a, b) => a + b, 0) / y10_valid.length).toFixed(2) + '%';
             
             // 30年期统计
-            document.getElementById('y30-current').textContent = y30[y30.length - 1].toFixed(2) + '%';
-            document.getElementById('y30-high').textContent = Math.max(...y30).toFixed(2) + '%';
-            document.getElementById('y30-low').textContent = Math.min(...y30).toFixed(2) + '%';
-            document.getElementById('y30-avg').textContent = (y30.reduce((a, b) => a + b, 0) / y30.length).toFixed(2) + '%';
+            document.getElementById('y30-current').textContent = y30_current.toFixed(2) + '%';
+            document.getElementById('y30-high').textContent = Math.max(...y30_valid).toFixed(2) + '%';
+            document.getElementById('y30-low').textContent = Math.min(...y30_valid).toFixed(2) + '%';
+            document.getElementById('y30-avg').textContent = (y30_valid.reduce((a, b) => a + b, 0) / y30_valid.length).toFixed(2) + '%';
             
             // 利差
-            const spread = y30[y30.length - 1] - y10[y10.length - 1];
+            const spread = y30_current - y10_current;
             document.getElementById('spread-value').textContent = spread.toFixed(2) + '%';
         }
         
